@@ -17,6 +17,7 @@ let currentColor = '#00ffcc';
 let isDrawing = false;
 let lastX = 0;
 let lastY = 0;
+let laserPoints = [];
 
 // -- DOM Elements --
 const canvas = document.getElementById('drawing-canvas');
@@ -27,10 +28,8 @@ const syncStatus = document.getElementById('sync-status');
 const syncText = document.getElementById('sync-text');
 const colorPicker = document.getElementById('color-picker');
 
-// Tools
 const btnPenMain = document.getElementById('btn-pen-main');
 const btnPen = document.getElementById('btn-pen');
-const btnHighlighter = document.getElementById('btn-highlighter');
 const btnLaser = document.getElementById('btn-laser');
 const btnEraser = document.getElementById('btn-eraser');
 const btnClear = document.getElementById('btn-clear');
@@ -80,9 +79,14 @@ socket.on('clear-canvas', () => {
 
 // -- Drawing Logic --
 function drawLine(x0, y0, x1, y1, color, size, tool, emit = true) {
-  let targetCtx = ctx;
-  if (tool === 'laser') targetCtx = laserCtx;
+  if (tool === 'laser') {
+    laserPoints.push({ x0, y0, x1, y1, time: Date.now(), color });
+    if (!emit) return;
+    socket.emit('draw-event', { roomId, x0, y0, x1, y1, color, size, tool });
+    return;
+  }
 
+  let targetCtx = ctx;
   targetCtx.beginPath();
   targetCtx.moveTo(x0, y0);
   targetCtx.lineTo(x1, y1);
@@ -95,11 +99,7 @@ function drawLine(x0, y0, x1, y1, color, size, tool, emit = true) {
     targetCtx.globalCompositeOperation = 'source-over';
     targetCtx.strokeStyle = color;
     targetCtx.lineWidth = size;
-    if (tool === 'highlighter') {
-      targetCtx.globalAlpha = 0.3; 
-    } else {
-      targetCtx.globalAlpha = 1.0;
-    }
+    targetCtx.globalAlpha = 1.0;
   }
   
   targetCtx.stroke();
@@ -176,17 +176,16 @@ canvas.addEventListener('touchend', () => isDrawing = false);
 
 // -- UI Interactions --
 function setActiveTool(btn, toolName, label) {
-  [btnPen, btnHighlighter, btnLaser, btnEraser].forEach(b => b.classList.remove('active'));
+  [btnPen, btnLaser, btnEraser].forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   currentTool = toolName;
   if (label) btnPenMain.innerText = label;
 }
 
 btnPen.addEventListener('click', () => setActiveTool(btnPen, 'pen', '✏️ ▼'));
-btnHighlighter.addEventListener('click', () => setActiveTool(btnHighlighter, 'highlighter', '🖍️ ▼'));
 btnLaser.addEventListener('click', () => setActiveTool(btnLaser, 'laser', '🪄 ▼'));
 btnEraser.addEventListener('click', () => {
-  [btnPen, btnHighlighter, btnLaser, btnEraser].forEach(b => b.classList.remove('active'));
+  [btnPen, btnLaser, btnEraser].forEach(b => b.classList.remove('active'));
   btnEraser.classList.add('active');
   currentTool = 'eraser';
 });
@@ -209,10 +208,24 @@ btnShare.addEventListener('click', () => {
 
 // Fade out laser strokes
 function updateLaserFade() {
-  laserCtx.globalCompositeOperation = 'destination-out';
-  laserCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-  laserCtx.fillRect(0, 0, laserCanvas.width, laserCanvas.height);
-  laserCtx.globalCompositeOperation = 'source-over';
+  laserCtx.clearRect(0, 0, laserCanvas.width, laserCanvas.height);
+  const now = Date.now();
+  laserPoints = laserPoints.filter(p => now - p.time < 2000);
+  
+  laserCtx.lineCap = 'round';
+  laserCtx.lineJoin = 'round';
+  laserCtx.lineWidth = 5;
+
+  for (const p of laserPoints) {
+    const age = now - p.time;
+    const opacity = 1 - (age / 2000);
+    laserCtx.globalAlpha = opacity;
+    laserCtx.strokeStyle = p.color;
+    laserCtx.beginPath();
+    laserCtx.moveTo(p.x0, p.y0);
+    laserCtx.lineTo(p.x1, p.y1);
+    laserCtx.stroke();
+  }
   requestAnimationFrame(updateLaserFade);
 }
 updateLaserFade();
