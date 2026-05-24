@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Overlay - Web Client</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        :root {
+            --bg-color: rgba(20, 20, 25, 0.9);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent-color: #00ffcc;
+            --text-color: #ffffff;
+            --text-muted: #8b8b9a;
+            --hover-bg: rgba(255, 255, 255, 0.1);
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #121218; /* Dark background since browsers can't be transparent to desktop */
+            font-family: 'Inter', sans-serif;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            cursor: crosshair;
+        }
+        #toolbar {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            background: var(--bg-color);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 100px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .tools { display: flex; align-items: center; gap: 6px; }
+        .tool-btn {
+            background: transparent; border: none; outline: none; width: 36px; height: 36px;
+            border-radius: 50%; font-size: 16px; cursor: pointer; color: var(--text-color);
+            transition: all 0.2s ease;
+        }
+        .tool-btn:hover { background: var(--hover-bg); }
+        .tool-btn.active {
+            background: rgba(0, 255, 204, 0.2); border: 1px solid var(--accent-color);
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
+        }
+        .tool-btn.action { color: #ff4757; }
+        .separator { width: 1px; height: 24px; background: var(--border-color); margin: 0 4px; }
+        #color-picker {
+            -webkit-appearance: none; border: none; width: 28px; height: 28px;
+            border-radius: 50%; cursor: pointer; padding: 0; background: transparent;
+        }
+        #color-picker::-webkit-color-swatch { border: 2px solid var(--border-color); border-radius: 50%; }
+        .status-panel { display: flex; flex-direction: column; margin-left: 8px; }
+        .status-indicator { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 500; color: var(--text-color); }
+        .dot { width: 8px; height: 8px; border-radius: 50%; }
+        .dot.connected { background: var(--accent-color); box-shadow: 0 0 8px var(--accent-color); }
+        .dot.disconnected { background: #ff4757; box-shadow: 0 0 8px #ff4757; }
+        .room-badge { position: absolute; bottom: 20px; left: 20px; background: rgba(0,0,0,0.5); padding: 8px 12px; border-radius: 8px; color: #fff; font-size: 12px; z-index: 100; border: 1px solid rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body>
+
+    <canvas id="drawing-canvas"></canvas>
+
+    <div id="toolbar">
+        <div class="tools">
+            <button class="tool-btn active" id="btn-pen" title="Pen">✏️</button>
+            <button class="tool-btn" id="btn-highlighter" title="Highlighter">🖍️</button>
+            <button class="tool-btn" id="btn-eraser" title="Eraser">🧹</button>
+            <div class="separator"></div>
+            <input type="color" id="color-picker" value="#00ffcc" title="Color" />
+            <div class="separator"></div>
+            <button class="tool-btn action" id="btn-clear" title="Clear Canvas">🗑️</button>
+            <button class="tool-btn" id="btn-share" title="Copy Invite Link">🔗</button>
+        </div>
+        <div class="status-panel">
+            <div class="status-indicator">
+                <span id="sync-status" class="dot disconnected"></span>
+                <span id="sync-text">Connecting...</span>
+            </div>
+            <div style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Web Client</div>
+        </div>
+    </div>
+
+    <div class="room-badge" id="room-badge">Room: Loading...</div>
+
+    <script src="/client.js"></script>
+</body>
+</html>
