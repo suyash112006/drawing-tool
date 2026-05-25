@@ -35,12 +35,15 @@ pub fn run() {
               match shortcut.key {
                 Code::KeyD => {
                   // Ctrl+Shift+D: toggle drawing mode via event
+                  let _ = window.set_always_on_top(true);
+                  let _ = window.set_focus();
                   let _ = window.emit("shortcut-toggle-draw", "toggle");
                 }
                 Code::KeyM => {
                   // Ctrl+M: minimize/restore in pure Rust
                   if let Ok(true) = window.is_minimized() {
                     let _ = window.unminimize();
+                    let _ = window.set_always_on_top(true);
                     let _ = window.set_focus();
                   } else {
                     let _ = window.minimize();
