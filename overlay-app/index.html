@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Overlay</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <!-- Canvas layers -->
+    <canvas id="drawing-canvas"></canvas>
+    <canvas id="laser-canvas"></canvas>
+
+    <!-- Floating Toolbar UI -->
+    <div id="toolbar" class="toolbar">
+      <div class="drag-handle" data-tauri-drag-region>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      </div>
+      
+      <div class="tools">
+        <div class="dropdown">
+          <button id="btn-pen-main" class="tool-btn active" title="Pen Tools">✏️ ▼</button>
+          <div class="dropdown-content">
+            <button id="btn-pen" class="dropdown-btn active" title="Normal Pen">✏️ Normal Pen</button>
+            <button id="btn-laser" class="dropdown-btn" title="Laser Pointer">🪄 Laser Pointer</button>
+          </div>
+        </div>
+        <button id="btn-eraser" class="tool-btn" title="Eraser">🧹</button>
+        
+        <div class="separator"></div>
+        
+        <input type="color" id="color-picker" value="#00ffcc" title="Color" />
+        
+        <div class="separator"></div>
+        
+        <button class="tool-btn action" id="btn-clear" title="Clear Canvas">🗑️</button>
+        
+        <div class="separator"></div>
+        
+        <button class="tool-btn" id="btn-share" title="Copy Invite Link">🔗</button>
+      </div>
+
+      <div class="status-panel">
+        <div class="status-indicator">
+          <span id="sync-status" class="dot disconnected"></span>
+          <span id="sync-text">Connecting...</span>
+        </div>
+        <div class="hint">Toggle: Ctrl+Shift+D</div>
+      </div>
+    </div>
+
+    <!-- Notification Overlay -->
+    <div id="notification">Drawing Mode Enabled</div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

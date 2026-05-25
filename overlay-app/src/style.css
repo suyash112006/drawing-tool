@@ -1,0 +1,224 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --bg-color: rgba(20, 20, 25, 0.7);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --accent-color: #00ffcc;
+  --text-color: #ffffff;
+  --text-muted: #8b8b9a;
+  --hover-bg: rgba(255, 255, 255, 0.1);
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: transparent !important;
+  font-family: 'Inter', sans-serif;
+  /* Crucial for click-through to work properly everywhere except UI */
+  pointer-events: none;
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+#drawing-canvas {
+  z-index: 1;
+  pointer-events: auto; /* Canvas captures events when not in click-through mode */
+}
+
+#laser-canvas {
+  z-index: 2;
+  pointer-events: none; /* Let events pass through to drawing canvas */
+}
+
+/* Hide cursor when drawing if we use custom cursor, but standard is fine for now */
+
+#toolbar {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  pointer-events: auto; /* UI always captures events when window is active */
+  
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  
+  background: var(--bg-color);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  border-radius: 100px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+#toolbar.hidden {
+  opacity: 0.2;
+  transform: translateX(-50%) translateY(-20px);
+  pointer-events: none;
+}
+
+.drag-handle {
+  cursor: grab;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Dropdown CSS */
+.dropdown { position: relative; display: inline-block; }
+.dropdown-content {
+  display: none; position: absolute; top: 100%; left: 0;
+  background-color: var(--bg-color); min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5); z-index: 101;
+  border-radius: 8px; border: 1px solid var(--border-color); overflow: hidden;
+  margin-top: 0; /* Changed from 8px to 0 to prevent hover dropping */
+}
+.dropdown:hover .dropdown-content { display: block; }
+.dropdown-btn {
+  background: transparent; color: white; padding: 12px 16px; text-decoration: none;
+  display: block; border: none; width: 100%; text-align: left; cursor: pointer;
+  transition: 0.2s; font-family: 'Inter', sans-serif;
+}
+.dropdown-btn:hover { background-color: var(--hover-bg); }
+.dropdown-btn.active { color: var(--accent-color); font-weight: 600; }
+
+.tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tool-btn {
+  background: transparent;
+  border: none;
+  outline: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  transition: all 0.2s ease;
+}
+
+.tool-btn:hover {
+  background: var(--hover-bg);
+}
+
+.tool-btn.active {
+  background: rgba(0, 255, 204, 0.2);
+  border: 1px solid var(--accent-color);
+  box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
+}
+
+.tool-btn.action {
+  color: #ff4757;
+}
+
+.separator {
+  width: 1px;
+  height: 24px;
+  background: var(--border-color);
+  margin: 0 4px;
+}
+
+#color-picker {
+  -webkit-appearance: none;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  background: transparent;
+}
+
+#color-picker::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+#color-picker::-webkit-color-swatch {
+  border: 2px solid var(--border-color);
+  border-radius: 50%;
+}
+
+.status-panel {
+  display: flex;
+  flex-direction: column;
+  margin-left: 8px;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dot.connected {
+  background: var(--accent-color);
+  box-shadow: 0 0 8px var(--accent-color);
+}
+
+.dot.disconnected {
+  background: #ff4757;
+  box-shadow: 0 0 8px #ff4757;
+}
+
+.hint {
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+#notification {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--accent-color);
+  color: #000;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 13px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 200;
+  white-space: nowrap;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#notification.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
