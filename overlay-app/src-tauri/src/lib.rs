@@ -6,6 +6,9 @@ static H_HIDDEN: AtomicBool = AtomicBool::new(false);
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+  // Disable GPU hardware acceleration to fix black background when screen sharing on Windows
+  std::env::set_var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", "--disable-gpu");
+
   tauri::Builder::default()
     .setup(|app| {
       if cfg!(debug_assertions) {
