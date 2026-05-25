@@ -15,9 +15,9 @@
         "title": "Overlay",
         "width": 800,
         "height": 600,
-        "maximized": true,
+        "maximized": false,
         "resizable": false,
-        "fullscreen": false,
+        "fullscreen": true,
         "transparent": true,
         "decorations": false,
         "alwaysOnTop": true
